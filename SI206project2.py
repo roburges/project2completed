@@ -72,23 +72,22 @@ def grab_headlines():
 
 def get_umsi_data():
     access=requests.get('https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All', headers={'User-Agent': 'SI_CLASS'})
-    mylst=[]
-    diflst=[]
-    soup = BeautifulSoup(access.text)
+    soup = BeautifulSoup(access.text,'html.parser')
     names=soup.find_all('div', attrs={'property': 'dc:title'})
     titles=soup.find_all('div', attrs={'class':'field field-name-field-person-titles field-type-text field-label-hidden'})
+    mylst=[]
+    diflst=[]
+    umsi_titles={}
     for mynames in names:
         thenames=mynames.text
-        # mylst.append(thenames)
+        mylst.append(thenames)
     for mytitles in titles:
         thetitles=mytitles.text
         diflst.append(thetitles)
-    umsi_titles={mylst:diflst}
-    index = 0
-    while index<len(umsi_titles):
-        index+=1
-    #     print(
-        print(umsi_titles)
+    for ziplist,ziplst in zip(mylst,diflst):
+        umsi_titles[ziplist]=ziplst
+    print(umsi_titles)
+
 
 
 
