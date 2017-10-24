@@ -1,46 +1,28 @@
 ## SI 206 W17 - Project 2
 
 ## COMMENT HERE WITH:
-## Your name:
-## Anyone you worked with on this project:
-
+## Your name:Robert Cole Burgess
+## Anyone you worked with on this project:Rachel Cheng, Cathy Park
 ## Below we have provided import statements, comments to separate out the
 #parts of the project, instructions/hints/examples, and at the end, TESTS.
-
 ###########
-
 ## Import statements
 import unittest
 import requests
 import re
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-
-
-
 ## Part 1 -- Define your find_urls function here.
 ## INPUT: any string
 ## RETURN VALUE: a list of strings that represents all of the URLs in the input string
-
-
-
-
 ## For example:
 ## find_urls("http://www.google.com is a great site") should return ["http://www.google.com"]
 ## find_urls("I love looking at websites like http://etsy.com and http://instagram.com and stuff") should return ["http://etsy.com","http://instagram.com"]
 ## find_urls("the internet is awesome #worldwideweb") should return [], empty list
-
 def find_urls(s):
-
 #Your code here
-
-    regex=re.findall(r'http[s]?://[a-zA-Z0-9.-]+\.[a-zA-Z]+[/]*',s)
-    return regex
-
-
-
-
-
+    return (re.findall('http[s]?://[a-zA-Z0-9.-]+\.[a-zA-Z]+[/]*',s))##Finding Html with regex s is nongreedy in https we
+                                                                    ##find all characters escape the line for a literal . then find the end of the url meeting requirements
 ## PART 2  - Define a function grab_headlines.
 ## INPUT: N/A. No input.
 ## Grab the headlines from the "Most Read" section of
@@ -49,14 +31,11 @@ def find_urls(s):
 # information on other HTML parsers is here:
 # http://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser
 def grab_headlines():
-    html = urlopen('https://www.michigandaily.com/section/opinion').read()
-    soup = BeautifulSoup(html,"html.parser")
-    mylst=[]
-    for findtag in soup.find_all('div', attrs={'class':'views-field views-field-title'}):
-        alltitles=findtag.text
-        mylst.append(alltitles)
-    return(mylst)
-
+    html = urlopen('https://www.michigandaily.com/section/opinion').read() ##open url and read
+    soup = BeautifulSoup(html,"html.parser")#create soup and call parser
+    for findtag in soup.find_all('div', attrs={'class':'view-most-read'}): ##find class for desired sectiondata
+        # alltitles=findtag.text.strip().split("\n")##format tags found
+        return(findtag.text.strip().split("\n"))##formatandreturn tags
     pass
 ## PART 3 (a) Define a function called get_umsi_data.  It should create a dictionary
 ## saved in a variable umsi_titles whose keys are UMSI people's names, and whose
@@ -68,60 +47,38 @@ def grab_headlines():
 ## OUTPUT: Return umsi_titles
 ## Reminder: you'll need to use the special header for a request to the UMSI site, like so:
 ## requests.get(base_url, headers={'User-Agent': 'SI_CLASS'})
-
-
+#your code here:
 def get_umsi_data():
-    mylst=[]
-    diflst=[]
+    html = "https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All"
+    mylst=[] #above gives variable for html
+    diflst=[]#53,54,and 55 give empty list and dictionaries for later storage
     umsi_titles={}
-    for pages in range(13):
-        access=requests.get('https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All', headers={'User-Agent': 'SI_CLASS'})
-        soup = BeautifulSoup(access.text,'html.parser')
-    # names=soup.find_all('div', attrs={'property': 'dc:title'})
-        # titles=soup.find_all('div', attrs={'class':'field field-name-field-person-titles field-type-text field-label-hidden'})
-
-    for mynames in soup.find_all('div', attrs={'property': 'dc:title'}):
-        thenames=mynames.text
-        mylst.append(thenames)
-    for mytitles in soup.find_all('div', attrs={'class':'field field-name-field-person-titles field-type-text field-label-hidden'}):
-        thetitles=mytitles.text
-        diflst.append(thetitles)
-    for ziplist,ziplst in zip(mylst,diflst):
-        umsi_titles[ziplist]=ziplst
-        # page='All&page='
-        # page+=str(1)
-    print(umsi_titles)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # return(mylst)
-
-    pass
-    #Your code here
+    for page in range(13):##gives range of page parameters
+        access = requests.get(html, headers={'User-Agent': 'SI_CLASS'})##gets access and all data on umsipage
+        soup = BeautifulSoup(access.text,'html.parser')#create soup, call parser and return text
+        for mynames in soup.find_all('div', attrs={'property': 'dc:title'}):#finding my names
+            thenames=mynames.text#convert to text
+            mylst.append(thenames)#add to empty list
+        for mytitles in soup.find_all('div', attrs={'class':'field field-name-field-person-titles field-type-text field-label-hidden'}):#find my titles
+            thetitles=mytitles.text#convert to text
+            diflst.append(thetitles)#add to new empty list
+        lnk= soup.find(class_ = "pager-next last")#find next page button
+        if page != 12:#if not on the last page
+            for html in lnk:
+                html = "https://www.si.umich.edu" + html.get("href")#move to the reference data in url and iterate
+        for ziplist,ziplst in zip(mylst,diflst):#create dict with names as key and titles as value
+            umsi_titles[ziplist]=ziplst
+    return(umsi_titles)#return correct format
 
 ## PART 3 (b) Define a function called num_students.
 ## INPUT: The dictionary from get_umsi_data().
 ## OUTPUT: Return number of PhD students in the data.  (Don't forget, I may change the input data)
+#Your code here:
 def num_students(data):
-
+    from collections import Counter#new modules for counting
+    dta = Counter(data.values())###takes data from UMSI_titles and counts all values
+    return(dta["PhD student"]) ##returns desired counted value of data
     pass
-    #Your code here
-
-
-
-
 ########### TESTS; DO NOT CHANGE ANY CODE BELOW THIS LINE! ###########
 def test(got, expected, pts):
     score = 0;
